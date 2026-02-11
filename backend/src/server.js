@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors"
 import dotenv from "dotenv"
+import router from "./route.js"
 
 dotenv.config()
 
@@ -13,6 +14,7 @@ app.get("/", (req, res) => {
     res.send("HELLO from Backend!")
 })
 
+app.use("/api", router)
 
 app.listen(PORT, () => {
     console.log(`🚀 server is running on: http://localhost:${PORT}`)
