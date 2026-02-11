@@ -3,7 +3,10 @@ import cors from "cors"
 import dotenv from "dotenv"
 import router from "./route.js"
 
+import { ConnectDB } from "./config/mongo.js";
+
 dotenv.config()
+ConnectDB()
 
 const PORT = process.env.PORT || 5000
 const app = express()

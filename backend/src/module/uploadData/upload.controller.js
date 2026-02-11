@@ -1,47 +1,42 @@
-import { getGeminiEmbedding } from "../../utils/embedData";
+import { uploadDataService } from "./upload.service.js";
+import uploadDataSchema from "./upload.schema.js";
 
 export const uploadDataController = {
-    async uploadData(text) {
+    async uploadData(req, res) {
         try {
-            const chunks = chunkText(text)
-            const vectors = getGeminiEmbedding(chunks)
-            const embededChunks = await Promise.all(
-                chunks.map(async (chunk, index) => {
-                    try {
-
-                        const embeddingRes = await getGeminiEmbedding(chunk)
-
-                        return {
-                            content: chunk,
-                            embedding: embeddingRes[0]
-                        };
-                    } catch (embedError) {
-                        console.error(`Embedding failed for chunk "${chunk.metadata.title}":`, embedError);
-                        return null;
-                    }
-                })
-            );
-
-            const successfulEmbeddings = embededChunks.filter(chunk => chunk !== null);
-
-            if (successfulEmbeddings.length === 0) {
-                return res.status(500).json({
-                    message: "All embedding operations failed",
-                    status: false
+            // 1. Validate input
+            const validation = uploadDataSchema.safeParse(req.body);
+            if (!validation.success) {
+                return res.status(400).json({
+                    success: false,
+                    error: validation.error.errors[0].message
                 });
             }
 
+            const { text } = validation.data;
 
-            // 4. Prepare documents for database insertion
-            const documents = successfulEmbeddings.map((chunk) => {
-                return {
-                    content: chunk.content,
-                    embedding: chunk.embedding,
-                };
+            // 2. Call Service
+            const result = await uploadDataService.upload(text);
+
+            // 3. Handle Service Result
+            if (!result.success) {
+                return res.status(500).json({
+                    success: false,
+                    error: result.error
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                data: result.data
             });
 
         } catch (error) {
-
+            console.error("Error in uploadDataController.uploadData:", error);
+            return res.status(500).json({
+                success: false,
+                error: "Internal server error"
+            });
         }
     }
 }

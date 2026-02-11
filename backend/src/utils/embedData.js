@@ -1,4 +1,4 @@
-import { genAI } from "../config/genAI";
+import { genAI } from "../config/genAI.js";
 
 export async function getGeminiEmbedding(
     chunks,
